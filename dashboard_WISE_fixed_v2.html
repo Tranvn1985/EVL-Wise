@@ -518,7 +518,7 @@ function loadData(){
   var btn=document.getElementById('refreshBtn');
   if(btn){btn.textContent='⏳ Loading...';btn.disabled=true;}
   var ts=new Date().getTime();
-  var pubUrl='https://docs.google.com/spreadsheets/d/1Kr9YgkSBPgU3BfZQLxRA_9WFs0wARsktQVdLhlZpUc0/pub?gid=807268203&single=true&output=csv&t='+ts;
+  var pubUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQVhlA6tiBSpwtiH1deAAEXO0L7akNl0D0RLubtKKGNt-q7MUtga6ODvt-rkuzQpugqm0Is9MJoWNSG/pub?gid=807268203&single=true&output=csv&t='+ts;
   var exportUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts;
   var proxyUrl='https://corsproxy.io/?'+encodeURIComponent(exportUrl);
   function onSuccess(data){
