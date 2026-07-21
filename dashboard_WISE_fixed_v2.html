@@ -114,6 +114,37 @@ nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px}
   cursor:pointer;outline:none;min-width:112px;transition:border-color .15s
 }
 .filter-select:focus,.filter-select:hover{border-color:var(--accent)}
+/* ===== MULTI-SELECT ===== */
+.ms-wrap{position:relative;display:inline-block;vertical-align:middle}
+.ms-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--border);background:var(--surface2);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;
+  min-width:110px;transition:border-color .15s;white-space:nowrap;user-select:none}
+.ms-btn:hover,.ms-btn.active{border-color:var(--accent);background:#eff2ff;color:var(--accent)}
+.ms-caret{font-size:8px;margin-left:auto;opacity:.4}
+.ms-count{background:var(--accent);color:#fff;border-radius:9px;font-size:10px;
+  font-weight:700;padding:0 5px;min-width:16px;text-align:center;display:inline-block}
+.ms-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:9999;min-width:190px;max-width:270px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  box-shadow:0 8px 24px rgba(0,0,0,.14);display:none;overflow:hidden}
+.ms-panel.open{display:block}
+.ms-psearch{width:100%;box-sizing:border-box;padding:7px 10px;border:none;
+  border-bottom:1px solid var(--border);font-family:'Inter',sans-serif;font-size:12px;outline:none;
+  background:var(--surface2)}
+.ms-list{max-height:200px;overflow-y:auto}
+.ms-item{display:flex;align-items:center;gap:7px;padding:7px 11px;cursor:pointer;
+  font-size:12px;transition:background .1s}
+.ms-item:hover{background:var(--accent-light)}
+.ms-item.sel{background:#eff2ff;font-weight:600;color:var(--accent)}
+.ms-item input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.ms-foot{display:flex;gap:6px;padding:6px 10px;border-top:1px solid var(--border);background:var(--surface2)}
+.ms-foot button{flex:1;padding:4px 0;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;
+  font-size:11px;font-weight:600;cursor:pointer}
+.ms-clr{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.ms-clr:hover{color:#7a2a3a;border-color:#7a2a3a}
+.ms-selall{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.ms-selall:hover{background:#3451d1}
+
 .filter-refresh-btn{
   margin-left:auto;padding:7px 18px;border-radius:var(--radius-sm);
   border:none;background:linear-gradient(135deg,#4361ee,#738ffa);
@@ -272,17 +303,8 @@ tbody td.center{text-align:center}
   </div>
   <div class="filter-bar">
     <span class="filter-bar-label">Filters</span>
-    <select class="filter-select" id="ov-status" onchange="applyOvFilter()">
-      <option value="">All Status</option>
-      <option>Paid</option><option>Pending</option><option>Overdue</option><option>Due Soon</option><option>Blocked</option>
-    </select>
-    <select class="filter-select" id="ov-month" onchange="applyOvFilter()">
-      <option value="">All Months</option>
-      <option value="Jan">January</option><option value="Feb">February</option><option value="Mar">March</option>
-      <option value="Apr">April</option><option value="May">May</option><option value="Jun">June</option>
-      <option value="Jul">July</option><option value="Aug">August</option><option value="Sep">September</option>
-      <option value="Oct">October</option><option value="Nov">November</option><option value="Dec">December</option>
-    </select>
+    <div class="ms-wrap" id="mw-ov-status"></div>
+    <div class="ms-wrap" id="mw-ov-month"></div>
     <button class="filter-refresh-btn" id="refreshBtn" onclick="loadData()">&#8634; Refresh data</button>
   </div>
   <div style="margin-bottom:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)">Key Indicators</div>
@@ -316,23 +338,10 @@ tbody td.center{text-align:center}
   </div>
   <div class="filter-bar">
     <span class="filter-bar-label">CF Month</span>
-    <select class="filter-select" id="mp-month" onchange="applyMonthlyFilter()">
-      <option value="">All Months</option>
-      <option>Jan</option><option>Feb</option><option>Mar</option><option>Apr</option>
-      <option>May</option><option>Jun</option><option>Jul</option><option>Aug</option>
-      <option>Sep</option><option>Oct</option><option>Nov</option><option>Dec</option>
-    </select>
-    <select class="filter-select" id="mp-priority" onchange="applyMonthlyFilter()">
-      <option value="">All Priority</option>
-      <option>🔴 Urgent</option><option>🟠 Planned</option><option>🟢 Consider</option><option>⚫ Blocked</option>
-    </select>
-    <select class="filter-select" id="mp-status" onchange="applyMonthlyFilter()">
-      <option value="">All Status</option>
-      <option>Overdue</option><option>Due Soon</option><option>Pending</option><option>Paid</option><option>Blocked</option>
-    </select>
-    <select class="filter-select" id="mp-supplier" onchange="applyMonthlyFilter()" style="min-width:180px">
-      <option value="">All Suppliers</option>
-    </select>
+    <div class="ms-wrap" id="mw-mp-month"></div>
+    <div class="ms-wrap" id="mw-mp-priority"></div>
+    <div class="ms-wrap" id="mw-mp-status"></div>
+    <div class="ms-wrap" id="mw-mp-supplier"></div>
     <input class="search-input" placeholder="🔍 Search..." oninput="applyMonthlyFilter()" id="mp-search" style="width:150px">
     <button class="filter-refresh-btn" onclick="loadData()">&#8634; Refresh data</button>
   </div>
@@ -404,20 +413,10 @@ tbody td.center{text-align:center}
     </div>
   </div>
   <div class="filter-bar">
-    <select class="filter-select" id="detail-pmtdate" onchange="applyDetailFilters()">
-      <option value="">All PMT Date</option>
-    </select>
-    <select class="filter-select" id="detail-supplier" onchange="applyDetailFilters()">
-      <option value="">All Suppliers</option>
-    </select>
-    <select class="filter-select" id="detail-priority" onchange="applyDetailFilters()">
-      <option value="">All Priority</option>
-      <option>🔴 Urgent</option><option>🟠 Planned</option><option>🟢 Consider</option><option>⚫ Blocked</option><option>✅ Done</option>
-    </select>
-    <select class="filter-select" id="detail-status" onchange="applyDetailFilters()">
-      <option value="">All Status</option>
-      <option>Overdue</option><option>Due Soon</option><option>Pending</option><option>Paid</option><option>Blocked</option>
-    </select>
+    <div class="ms-wrap" id="mw-det-pmt"></div>
+    <div class="ms-wrap" id="mw-det-supplier"></div>
+    <div class="ms-wrap" id="mw-det-priority"></div>
+    <div class="ms-wrap" id="mw-det-status"></div>
     <button class="filter-refresh-btn" onclick="loadData()">&#8634; Refresh</button>
   </div>
   <div class="table-card">
@@ -437,11 +436,9 @@ tbody td.center{text-align:center}
 var SHEET_ID = '1Kr9YgkSBPgU3BfZQLxRA_9WFs0wARsktQVdLhlZpUc0';
 var GID = '807268203';
 var CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + GID;
-
 var allData = [];
-var chartFont = {family:"'Inter',sans-serif",size:11};
+var currentPage = 'overview';
 var monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var priorityOrder = {'🔴 Urgent':0,'🟠 Planned':1,'🟢 Consider':2,'⚫ Blocked':3,'✅ Done':4};
 
 // ===== HELPERS =====
 function fmt(n){return n===0?'$0':'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -483,32 +480,23 @@ function autoPriority(status){
   return m[status]||'';
 }
 
-// ===== CSV PARSER =====
+// ===== CSV PARSER (handles multi-line cells) =====
 function parseCSV(text){
-  var rows=[];
-  var row=[];
-  var cur='';
-  var inQ=false;
-  var i=0;
-  var len=text.length;
+  var rows=[],row=[],cur='',inQ=false,i=0,len=text.length,cc;
   while(i<len){
-    var ch=text[i];
+    cc=text.charCodeAt(i);
     if(inQ){
-      if(ch==='"'){
-        if(text[i+1]==='"'){cur+='"';i+=2;continue;}
-        inQ=false;i++;continue;
-      }
-      cur+=ch;i++;continue;
-    } else {
-      if(ch==='"'){inQ=true;i++;continue;}
-      if(ch===','){row.push(cur.trim());cur='';i++;continue;}
-      if(ch==='\r'){i++;continue;}
-      if(ch==='\n'){row.push(cur.trim());cur='';rows.push(row);row=[];i++;continue;}
-      cur+=ch;i++;continue;
+      if(cc===34){if(text.charCodeAt(i+1)===34){cur+='"';i+=2;}else{inQ=false;i++;}}
+      else{cur+=text[i];i++;}
+    }else{
+      if(cc===34){inQ=true;i++;}
+      else if(cc===44){row.push(cur.trim());cur='';i++;}
+      else if(cc===13){i++;}
+      else if(cc===10){row.push(cur.trim());cur='';rows.push(row);row=[];i++;}
+      else{cur+=text[i];i++;}
     }
   }
-  // push last field/row if any content remains
-  if(cur.length>0||row.length>0){row.push(cur.trim());rows.push(row);}
+  if(cur||row.length){row.push(cur.trim());rows.push(row);}
   return rows;
 }
 
@@ -531,7 +519,7 @@ function loadData(){
   if(btn){btn.textContent='⏳ Loading...';btn.disabled=true;}
   var ts=new Date().getTime();
   var exportUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts;
-  var directUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+GID+'&t='+ts;
+  var gvizUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+GID+'&t='+ts;
   var proxyUrl='https://corsproxy.io/?'+encodeURIComponent(exportUrl);
   function onSuccess(data){
     allData=data;
@@ -554,7 +542,7 @@ function loadData(){
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
     .then(function(text){onSuccess(parseSheetData(text));})
     .catch(function(){
-      fetch(directUrl,{mode:'cors'})
+      fetch(exportUrl,{mode:'cors'})
         .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
         .then(function(text){onSuccess(parseSheetData(text));})
         .catch(function(){
@@ -671,7 +659,6 @@ function parseSheetData(csvText){
 }
 
 // ===== NAVIGATION =====
-var currentPage='overview';
 function showPage(id,el){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
@@ -689,15 +676,136 @@ function renderCurrentPage(){
   else if(currentPage==='detail') applyDetailFilters();
 }
 
+
+// ======================================================
+// MULTI-SELECT ENGINE
+// ======================================================
+var _ms={};  // id -> {sel:Set, opts:[], label:'', wrapId:'', cb:fn}
+
+function msInit(wrapId,id,label,opts,cb){
+  if(!_ms[id]) _ms[id]={sel:new Set()};
+  _ms[id].opts=opts; _ms[id].label=label; _ms[id].wrapId=wrapId; _ms[id].cb=cb;
+  _msRender(id);
+}
+function msInitDyn(wrapId,id,label,opts,cb){
+  if(!_ms[id]) _ms[id]={sel:new Set()};
+  var vals=opts.map(function(o){return typeof o==='string'?o:o.v;});
+  _ms[id].sel.forEach(function(v){if(vals.indexOf(v)<0) _ms[id].sel.delete(v);});
+  _ms[id].opts=opts; _ms[id].label=label; _ms[id].wrapId=wrapId; _ms[id].cb=cb;
+  _msRender(id);
+}
+function _msRender(id){
+  var s=_ms[id]; if(!s) return;
+  var wrap=document.getElementById(s.wrapId); if(!wrap) return;
+  var sel=s.sel; var n=sel.size;
+  var lbl=n===0?s.label:(n===1?Array.from(sel)[0].replace(/[^\x00-\x7F\u00C0-\u024F]/g,'').trim()||Array.from(sel)[0]:s.label);
+  var countHtml=n>0?' <span class="ms-count">'+n+'</span>':'';
+  var cls='ms-btn'+(n>0?' active':'');
+  var items=s.opts.map(function(o){
+    var v=typeof o==='string'?o:o.v;
+    var t=typeof o==='string'?o:o.t;
+    var chk=sel.has(v);
+    var esc=v.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return '<div class="ms-item'+(chk?' sel':'')+'" data-v="'+esc+'" onclick="msToggleItem(\'' +id+ '\',this)">'+
+      '<input type="checkbox"'+(chk?' checked':'')+' onclick="event.stopPropagation()">'+
+      '<span>'+t+'</span></div>';
+  }).join('');
+  wrap.innerHTML=
+    '<div class="'+cls+'" onclick="msOpen(\'' +id+ '\')">'+lbl+countHtml+'<span class="ms-caret">&#9660;</span></div>'+
+    '<div class="ms-panel" id="msp-'+id+'">'+
+      '<input class="ms-psearch" placeholder="Search..." oninput="msSearch(\'' +id+ '\',this.value)">'+
+      '<div class="ms-list" id="msl-'+id+'">'+items+'</div>'+
+      '<div class="ms-foot">'+
+        '<button class="ms-clr" onclick="msClear(\'' +id+ '\')">Clear</button>'+
+        '<button class="ms-selall" onclick="msAll(\'' +id+ '\')">All</button>'+
+      '</div>'+
+    '</div>';
+}
+function msOpen(id){
+  var p=document.getElementById('msp-'+id); if(!p) return;
+  var was=p.classList.contains('open');
+  document.querySelectorAll('.ms-panel.open').forEach(function(x){x.classList.remove('open');});
+  if(!was){p.classList.add('open');var si=p.querySelector('.ms-psearch');if(si){si.value='';si.focus();msSearch(id,'');}}
+}
+function msToggleItem(id,el){
+  var v=el.getAttribute('data-v');
+  if(_ms[id].sel.has(v)) _ms[id].sel.delete(v); else _ms[id].sel.add(v);
+  _msRender(id);
+  document.getElementById('msp-'+id).classList.add('open');
+  if(_ms[id].cb) _ms[id].cb();
+}
+function msClear(id){
+  _ms[id].sel=new Set(); _msRender(id);
+  document.getElementById('msp-'+id).classList.add('open');
+  if(_ms[id].cb) _ms[id].cb();
+}
+function msAll(id){
+  _ms[id].sel=new Set(_ms[id].opts.map(function(o){return typeof o==='string'?o:o.v;}));
+  _msRender(id);
+  document.getElementById('msp-'+id).classList.add('open');
+  if(_ms[id].cb) _ms[id].cb();
+}
+function msSearch(id,q){
+  q=q.toLowerCase();
+  document.querySelectorAll('#msl-'+id+' .ms-item').forEach(function(el){
+    el.style.display=el.textContent.toLowerCase().indexOf(q)>=0?'':'none';
+  });
+}
+function msMatches(id,val){
+  if(!_ms[id]||_ms[id].sel.size===0) return true;
+  return _ms[id].sel.has(val);
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.ms-wrap'))
+    document.querySelectorAll('.ms-panel.open').forEach(function(p){p.classList.remove('open');});
+});
+
+// Static option sets (using text labels that match actual data values)
+var OPTS_STATUS=[
+  {v:'Overdue',t:'\uD83D\uDD34 Overdue'},
+  {v:'Due Soon',t:'\uD83D\uDFE1 Due Soon'},
+  {v:'Pending',t:'\u23F3 Pending'},
+  {v:'Paid',t:'\u2705 Paid'},
+  {v:'Blocked',t:'\u26AB Blocked'}
+];
+var OPTS_MONTH=[
+  {v:'Jan',t:'January'},{v:'Feb',t:'February'},{v:'Mar',t:'March'},
+  {v:'Apr',t:'April'},{v:'May',t:'May'},{v:'Jun',t:'June'},
+  {v:'Jul',t:'July'},{v:'Aug',t:'August'},{v:'Sep',t:'September'},
+  {v:'Oct',t:'October'},{v:'Nov',t:'November'},{v:'Dec',t:'December'}
+];
+var OPTS_PRI=[
+  {v:'\uD83D\uDD34 Urgent',t:'\uD83D\uDD34 Urgent'},
+  {v:'\uD83D\uDFE0 Planned',t:'\uD83D\uDFE0 Planned'},
+  {v:'\uD83D\uDFE2 Consider',t:'\uD83D\uDFE2 Consider'},
+  {v:'\u26AB Blocked',t:'\u26AB Blocked'}
+];
+var OPTS_PRI_DET=[
+  {v:'\uD83D\uDD34 Urgent',t:'\uD83D\uDD34 Urgent'},
+  {v:'\uD83D\uDFE0 Planned',t:'\uD83D\uDFE0 Planned'},
+  {v:'\uD83D\uDFE2 Consider',t:'\uD83D\uDFE2 Consider'},
+  {v:'\u26AB Blocked',t:'\u26AB Blocked'},
+  {v:'\u2705 Done',t:'\u2705 Done'}
+];
+
+function initMultiSelects(){
+  msInit('mw-ov-status',   'ov-status',    'All Status',   OPTS_STATUS,   applyOvFilter);
+  msInit('mw-ov-month',    'ov-month',     'All Months',   OPTS_MONTH,    applyOvFilter);
+  msInit('mw-mp-month',    'mp-month',     'CF Month',     OPTS_MONTH,    applyMonthlyFilter);
+  msInit('mw-mp-priority', 'mp-priority',  'All Priority', OPTS_PRI,      applyMonthlyFilter);
+  msInit('mw-mp-status',   'mp-status',    'All Status',   OPTS_STATUS,   applyMonthlyFilter);
+  msInit('mw-det-priority','det-priority', 'All Priority', OPTS_PRI_DET,  applyDetailFilters);
+  msInit('mw-det-status',  'det-status',   'All Status',   OPTS_STATUS,   applyDetailFilters);
+  // supplier & pmt-date are dynamic, inited after data loads
+}
+// ======================================================
 // ===== OVERVIEW =====
 var priorityDonutInst=null,trendChartInst=null;
 
 function getFilteredOvData(){
-  var status=document.getElementById('ov-status').value;
-  var month=document.getElementById('ov-month').value;
   return allData.filter(function(d){
-    if(status&&d.status!==status) return false;
-    if(month&&d.monthDebt!==month) return false;
+    if(!msMatches('ov-status',d.status)) return false;
+    if(!msMatches('ov-month',d.monthDebt)) return false;
     return true;
   });
 }
@@ -839,41 +947,27 @@ function renderOverview(data){
 
 // ===== MONTHLY PAYABLES =====
 function initMonthlyPage(){
-  var curMonth=monthAbbr[new Date().getMonth()];
-  var sel=document.getElementById('mp-month');
-  if(sel&&sel.value==='') sel.value=curMonth;
+  var cur=monthAbbr[new Date().getMonth()];
+  if(_ms['mp-month']&&_ms['mp-month'].sel.size===0){_ms['mp-month'].sel.add(cur);_msRender('mp-month');}
   applyMonthlyFilter();
 }
 function resetMonthlyFilter(){
-  document.getElementById('mp-month').value='';
-  document.getElementById('mp-priority').value='';
-  document.getElementById('mp-status').value='';
+  ['mp-month','mp-priority','mp-status','mp-supplier'].forEach(function(id){
+    if(_ms[id]){_ms[id].sel=new Set();_msRender(id);}
+  });
   applyMonthlyFilter();
 }
 function applyMonthlyFilter(){
-  var month=document.getElementById('mp-month').value;
-  var priority=document.getElementById('mp-priority').value;
-  var status=document.getElementById('mp-status').value;
-  var supplier=document.getElementById('mp-supplier')?document.getElementById('mp-supplier').value:'';
+  var sups=[];
+  allData.forEach(function(d){if(sups.indexOf(d.supplier)<0) sups.push(d.supplier);});
+  sups.sort();
+  msInitDyn('mw-mp-supplier','mp-supplier','Supplier',sups,applyMonthlyFilter);
   var search=(document.getElementById('mp-search')?document.getElementById('mp-search').value:'').toLowerCase();
-
-  // Populate supplier dropdown
-  var dd=document.getElementById('mp-supplier');
-  if(dd){
-    var suppliers=[];
-    allData.forEach(function(d){if(suppliers.indexOf(d.supplier)<0) suppliers.push(d.supplier);});
-    suppliers.sort();
-    var prev=dd.value;
-    dd.innerHTML='<option value="">All Suppliers</option>'+suppliers.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
-    if(prev) dd.value=prev;
-    supplier=dd.value;
-  }
-
   var data=allData.filter(function(d){
-    if(month&&d.monthDebt!==month) return false;
-    if(priority&&d.priority!==priority) return false;
-    if(status&&d.status!==status) return false;
-    if(supplier&&d.supplier!==supplier) return false;
+    if(!msMatches('mp-month',d.monthDebt)) return false;
+    if(!msMatches('mp-priority',d.priority)) return false;
+    if(!msMatches('mp-status',d.status)) return false;
+    if(!msMatches('mp-supplier',d.supplier)) return false;
     if(search&&JSON.stringify(d).toLowerCase().indexOf(search)<0) return false;
     return true;
   });
@@ -1138,61 +1232,32 @@ function filterStatus(status,btn){
 }
 function filterDetailTable(q){applyDetailFilters();}
 function applyDetailFilters(){
-  var ddSup=document.getElementById('detail-supplier');
-  var ddPmt=document.getElementById('detail-pmtdate');
-
-  // Populate Supplier dropdown
-  if(ddSup){
-    var sups=[];
-    allData.forEach(function(d){if(sups.indexOf(d.supplier)<0) sups.push(d.supplier);});
-    sups.sort();
-    var prevS=ddSup.value;
-    ddSup.innerHTML='<option value="">All Suppliers</option>'+sups.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
-    if(prevS) ddSup.value=prevS;
-  }
-
-  // Populate PMT Date dropdown từ cột T — nhóm theo "Mon-YYYY"
-  if(ddPmt){
-    var pmtMonths=[];
-    allData.forEach(function(d){
-      if(!d.pmtDate||d.pmtDate==='—') return;
-      // pmtDate đã chuẩn hóa dạng "Mar-2026"
-      if(pmtMonths.indexOf(d.pmtDate)<0) pmtMonths.push(d.pmtDate);
-    });
-    // Sắp xếp theo thứ tự thời gian
-    pmtMonths.sort(function(a,b){
-      var parse=function(s){
-        var p=s.split('-');
-        var yr=parseInt(p[1]||'0');if(yr<100)yr+=2000;
-        var mi=monthAbbr.indexOf(p[0]);
-        return yr*12+(mi>=0?mi:0);
-      };
-      return parse(a)-parse(b);
-    });
-    var prevP=ddPmt.value;
-    ddPmt.innerHTML='<option value="">All PMT Date</option>'+pmtMonths.map(function(m){
-      return '<option value="'+m+'">'+m+'</option>';
-    }).join('');
-    if(prevP) ddPmt.value=prevP;
-  }
-
-  var supplier=ddSup?ddSup.value:'';
-  var pmtMonth=ddPmt?ddPmt.value:'';
-  var priority=document.getElementById('detail-priority')?document.getElementById('detail-priority').value:'';
-  var status=document.getElementById('detail-status')?document.getElementById('detail-status').value:'';
-
+  var sups=[];
+  allData.forEach(function(d){if(sups.indexOf(d.supplier)<0) sups.push(d.supplier);});
+  sups.sort();
+  msInitDyn('mw-det-supplier','det-supplier','Supplier',sups,applyDetailFilters);
+  var pmts=[];
+  allData.forEach(function(d){
+    if(!d.pmtDate||d.pmtDate==='\u2014') return;
+    if(pmts.indexOf(d.pmtDate)<0) pmts.push(d.pmtDate);
+  });
+  pmts.sort(function(a,b){
+    var p=function(s){var x=s.split('-');var yr=parseInt(x[1]||0);if(yr<100)yr+=2000;var mi=monthAbbr.indexOf(x[0]);return yr*12+(mi>=0?mi:0);};
+    return p(a)-p(b);
+  });
+  msInitDyn('mw-det-pmt','det-pmt','PMT Date',pmts,applyDetailFilters);
   var data=allData.filter(function(d){
-    if(supplier&&d.supplier!==supplier) return false;
-    // Filter theo PMT date — so sánh trực tiếp "Mar-2026"
-    if(pmtMonth&&d.pmtDate!==pmtMonth) return false;
-    if(priority&&d.priority!==priority) return false;
-    if(status&&d.status!==status) return false;
+    if(!msMatches('det-supplier',d.supplier)) return false;
+    if(!msMatches('det-pmt',d.pmtDate)) return false;
+    if(!msMatches('det-priority',d.priority)) return false;
+    if(!msMatches('det-status',d.status)) return false;
     return true;
   });
   renderDetailTable(data);
 }
 
 // ===== INIT =====
+initMultiSelects();
 loadData();
 </script>
 </body>
