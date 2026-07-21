@@ -483,78 +483,56 @@ function autoPriority(status){
   return m[status]||'';
 }
 
-// ===== CSV PARSER (handles multi-line cells) =====
+// ===== CSV PARSER =====
 function parseCSV(text){
-  var rows=[],row=[],cur='',inQ=false,i=0,len=text.length,cc;
+  var rows=[];
+  var row=[];
+  var cur='';
+  var inQ=false;
+  var i=0;
+  var len=text.length;
   while(i<len){
-    cc=text.charCodeAt(i);
+    var ch=text[i];
     if(inQ){
-      if(cc===34){if(text.charCodeAt(i+1)===34){cur+='"';i+=2;}else{inQ=false;i++;}}
-      else{cur+=text[i];i++;}
-    }else{
-      if(cc===34){inQ=true;i++;}
-      else if(cc===44){row.push(cur.trim());cur='';i++;}
-      else if(cc===13){i++;}
-      else if(cc===10){row.push(cur.trim());cur='';rows.push(row);row=[];i++;}
-      else{cur+=text[i];i++;}
+      if(ch==='"'){
+        if(text[i+1]==='"'){cur+='"';i+=2;continue;}
+        inQ=false;i++;continue;
+      }
+      cur+=ch;i++;continue;
+    } else {
+      if(ch==='"'){inQ=true;i++;continue;}
+      if(ch===','){row.push(cur.trim());cur='';i++;continue;}
+      if(ch==='\r'){i++;continue;}
+      if(ch==='\n'){row.push(cur.trim());cur='';rows.push(row);row=[];i++;continue;}
+      cur+=ch;i++;continue;
     }
   }
-  if(cur||row.length){row.push(cur.trim());rows.push(row);}
+  // push last field/row if any content remains
+  if(cur.length>0||row.length>0){row.push(cur.trim());rows.push(row);}
   return rows;
 }
 
-// ===== STATIC DATA — fetched 21-Jul-2026 (25 records) =====
+// ===== STATIC DATA — từ tab OOV_PO_detail (24 records) =====
 var STATIC_DATA = [
-  {supplier:"Wykeham Corporate Services Limited",bank:"OCBC",bankAcc:"503472177301",swift:"0",inv:"WCS2020029",desc:"BVI-PMT ANNUAL ADMINISTRATION CHARGE AND PROVISON OF REGISTERED OFFICE AND REGISTERED AGENT (1800$) \nPMT REIMBURSEMENT OF ANNUAL GOVERNMENT LICENSE FEE (340$)",invDate:"-",dueDate:"14-Sep-20",amount:2140.0,paid:2140.0,pending:0.0,statusPmt:"Paid",pmtDate:"14-Sep-2020",status:"Paid",overDue:"-",priority:"✅ Done",note:"ANNUAL ADMINISTRATION CHARGE AND PROVISON OF REGISTERED OFFICE AND REGISTERED AGENT",monthDebt:"Sep"},
-  {supplier:"Acclime Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"659015824",swift:"0",inv:"20211678",desc:"BVI-PMT for Provision for Nominee Director, CorporateSecretary and registered office address for a period of 1 September to 31st December 2021 - [1,637.10 SGD and 10 SGD bank charge] \n- INV: # 20211678\n/ (Payment on behalf of One On One Ventures Ltd via e-wallet Transferwise)",invDate:"-",dueDate:"27-Aug-21",amount:1218.22,paid:1218.22,pending:0.0,statusPmt:"Paid",pmtDate:"27-Aug-2021",status:"Paid",overDue:"-",priority:"✅ Done",note:"Provision for Nominee Director, CorporateSecretary and registered office address for a period of 1 September to 31st December 2021- INV: # 20211678",monthDebt:"Aug"},
-  {supplier:"S E O Rank Marketing Services Inc.",bank:"Banco De Oro (BDO) in P. Corpuz BF Homes, Paranaque Branch",bankAcc:"0-1173-8000-505",swift:"0",inv:"00031968",desc:"BVI-PMT for SEO services from Sep 26, 2022 to Oct 26, 2022/ INV: 00031968",invDate:"26-Sep-2022",dueDate:"29-Sep-22",amount:2500.0,paid:2500.0,pending:0.0,statusPmt:"Paid",pmtDate:"29-Sep-2022",status:"Paid",overDue:"-",priority:"✅ Done",note:"SEO services from Sep 26, 2022 to Oct 26, 2022/ INV: 00031968",monthDebt:"Sep"},
-  {supplier:"S E O Rank Marketing Services Inc.",bank:"Banco De Oro (BDO) in P. Corpuz BF Homes, Paranaque Branch",bankAcc:"0-1173-8000-505",swift:"0",inv:"00032016",desc:"BVI-PMT for SEO services from OCT 26, 2022 to Nov 26, 2022/ INV: 00032016",invDate:"26-Nov-2022",dueDate:"28-Nov-22",amount:2500.0,paid:2500.0,pending:0.0,statusPmt:"Paid",pmtDate:"28-Nov-2022",status:"Paid",overDue:"-",priority:"✅ Done",note:"SEO services from OCT 26, 2022 to Nov 26, 2022/ INV: 00032016",monthDebt:"Nov"},
-  {supplier:"Teranga Digital Marketing Ltd",bank:"WISE PAYMENTS LIMITED\n (TRWIGB2LXXX)",bankAcc:"85078265",swift:"0",inv:"00032016",desc:"BVI-TT DICH VU SEO (TOI UU HOA CONG CU TIM KIEM) - LAN 1/\nPMT 1st FOR SEARCH ENGINE OPTIMIZATION SERVICE - GBP 2,980.48\n(INV: 00032016 - GBP 2,998.5)",invDate:"-",dueDate:"14-Nov-23",amount:3711.44,paid:3711.44,pending:0.0,statusPmt:"Paid",pmtDate:"14-Nov-2023",status:"Paid",overDue:"-",priority:"✅ Done",note:"1st FOR SEARCH ENGINE OPTIMIZATION SERVICE -\n(INV: 00032016 )",monthDebt:"Nov"},
-  {supplier:"Arc Warden Limited",bank:"DBS BANK (HONGKONG) LIMITED",bankAcc:"799 881 1985",swift:"0",inv:"2024-0903",desc:"BVI-TT PHI BAO CAO TAI CHINH NAM 2023 /PMT EVL_ANNUAL FINANCIAL RETURN 2023 (DEADLINE: 30-SEP-24) (INV: 2024-0903)",invDate:"-",dueDate:"2-Oct-24",amount:500.0,paid:500.0,pending:0.0,statusPmt:"Paid",pmtDate:"2-Oct-2024",status:"Paid",overDue:"-",priority:"✅ Done",note:"EVL_ANNUAL FINANCIAL RETURN 2023  (INV: 2024-0903)",monthDebt:"Oct"},
-  {supplier:"Arc Warden Limited",bank:"Standard Chartered Bank (Hong Kong) Limited",bankAcc:"47411853926",swift:"0",inv:"054 2025",desc:"BVI-TT PHI DỊCH VU VA BAO CAO THUONG NIEN/\nPMT YEARLY SERVICES AND REPORTS (Inv:054 2025)\n- BVI Government Annual Licence Fee (01/12/25-30/11/26): 550 $\n- Economic Substance Filing Fee(30/06/24-29/06/25): 550 $\n- Annual Return Filing Fee (01/01/24-31/12/24): 500 $\n- Register of Members / Register of Beneficial Owners Filing Fee: 500 $\n- Provision of Registered Office and Registered Agent Services: 1.200 $",invDate:"-",dueDate:"31-Oct-25",amount:3250.0,paid:3250.0,pending:0.0,statusPmt:"Paid",pmtDate:"31-Oct-2025",status:"Paid",overDue:"-",priority:"✅ Done",note:"YEARLY SERVICES AND REPORTS (Inv:054 2025)",monthDebt:"Oct"},
-  {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202603-1652a",desc:"BVI-TT PHAN MEM QUAN LY NHAN SU THANG 03 (TT CHO OOV)/\nPMT THE EMPLOYEE MANAGEMENT SYSTEM FOR MAR (ON BEHALF OOV)",invDate:"10-Mar-2026",dueDate:"17-Mar-26",amount:102.56,paid:102.56,pending:0.0,statusPmt:"Paid",pmtDate:"16-Mar-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE MANAGEMENT SYSTEM-03.26 (ON BEHALF OOV)",monthDebt:"Mar"},
-  {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202603-1653b",desc:"BVI-TT PHAN MEM QUAN LY NHAN SU-04.26 (TT CHO OOV)/\nPMT EMPLOYEE MANAGEMENT SYSTEM FOR APR (ON BEHALF OOV)",invDate:"19-Apr-2026",dueDate:"4-May-26",amount:198.38,paid:198.38,pending:0.0,statusPmt:"Paid",pmtDate:"4-May-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE MANAGEMENT SYSTEM -04.26 (ON BEHALF OOV)",monthDebt:"May"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-01.26",desc:"PMT SALARY FOR EMPLOYEE-01.26",invDate:"29-Jan-26",dueDate:"29-Jan-26",amount:26556.27,paid:26556.27,pending:0.0,statusPmt:"Paid",pmtDate:"29-Jan-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-01.26",monthDebt:"Jan"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-02.26",desc:"PMT SALARY FOR EMPLOYEE-02.26",invDate:"27-Feb-26",dueDate:"27-Feb-26",amount:28377.46,paid:28377.46,pending:0.0,statusPmt:"Paid",pmtDate:"27-Feb-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-02.26",monthDebt:"Feb"},
-  {supplier:"Teacher",bank:"",bankAcc:"",swift:"",inv:"Te-01.26",desc:"PMT TEACHER PAYROLL - 01.26",invDate:"2-Feb-26",dueDate:"29-Jan-26",amount:1498.0,paid:1498.0,pending:0.0,statusPmt:"Paid",pmtDate:"2-Feb-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"TEACHER PAYROLL - 01.26",monthDebt:"Feb"},
-  {supplier:"Teacher",bank:"",bankAcc:"",swift:"",inv:"Te-02.26",desc:"PMT TEACHER PAYROLL - 02.26",invDate:"28-Feb-26",dueDate:"28-Feb-26",amount:1470.0,paid:1470.0,pending:0.0,statusPmt:"Paid",pmtDate:"28-Feb-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"TEACHER PAYROLL - 02.26",monthDebt:"Feb"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-03.26/1",desc:"PMT SALARY FOR EMPLOYEE-03.26 (1ST)",invDate:"31-Mar-26",dueDate:"31-Mar-26",amount:18553.04,paid:18553.04,pending:0.0,statusPmt:"Paid",pmtDate:"31-Mar-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-03.26 (1ST)",monthDebt:"Mar"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-03.26/2",desc:"PMT SALARY FOR EMPLOYEE-03.26 (2ND)",invDate:"1-Apr-26",dueDate:"31-Mar-26",amount:5454.1,paid:5454.1,pending:0.0,statusPmt:"Paid",pmtDate:"1-Apr-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-03.26 (2ND)",monthDebt:"Apr"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-04.26/1",desc:"PMT SALARY FOR EMPLOYEE-04.26 (1ST)",invDate:"29-Apr-26",dueDate:"29-Apr-26",amount:10982.98,paid:10982.98,pending:0.0,statusPmt:"Paid",pmtDate:"29-Apr-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-04.26 (1ST)",monthDebt:"Apr"},
-  {supplier:"Teacher",bank:"",bankAcc:"",swift:"",inv:"Te-03.26",desc:"PMT TEACHER PAYROLL - 03.26",invDate:"1-Apr-26",dueDate:"31-Mar-26",amount:882.0,paid:882.0,pending:0.0,statusPmt:"Paid",pmtDate:"1-Apr-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"TEACHER PAYROLL - 03.26",monthDebt:"Apr"},
-  {supplier:"Teacher",bank:"",bankAcc:"",swift:"",inv:"Te-04.26",desc:"PMT TEACHER PAYROLL - 04.26",invDate:"30-Apr-26",dueDate:"30-Apr-26",amount:1120.0,paid:1120.0,pending:0.0,statusPmt:"Paid",pmtDate:"30-Apr-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"TEACHER PAYROLL - 04.26",monthDebt:"Apr"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-04.26/2",desc:"PMT SALARY FOR EMPLOYEE-04.26 (2ND)",invDate:"7-May-26",dueDate:"30-Apr-26",amount:7275.0,paid:7275.0,pending:0.0,statusPmt:"Paid",pmtDate:"7-May-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-04.26 (2ND)",monthDebt:"May"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-05.26/1",desc:"PMT SALARY FOR EMPLOYEE-05.26 (1ST)",invDate:"30-May-26",dueDate:"29-Jul-2026",amount:16980.14,paid:16980.14,pending:0.0,statusPmt:"Paid",pmtDate:"30-May-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-05.26 (1ST)",monthDebt:"May"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-05.26/2",desc:"PMT SALARY FOR EMPLOYEE-05.26 (2ND)",invDate:"5-Jun-2026",dueDate:"30-May-26",amount:2482.24,paid:2482.24,pending:0.0,statusPmt:"Paid",pmtDate:"5-Jun-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-05.26 (2ND)",monthDebt:"May"},
-  {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202605-2193",desc:"T06.26-BVI-TT PM uan ly nhan su-05.26/PMT employee management system for may (on behalf OOV)-(invoice: 202605-2193)",invDate:"25-May-2026",dueDate:"1-Jun-26",amount:175.7,paid:175.7,pending:0.0,statusPmt:"Paid",pmtDate:"5-Jun-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE MANAGEMENT SYSTEM -05.26 (ON BEHALF OOV)",monthDebt:"May"},
-  {supplier:"Teacher",bank:"",bankAcc:"",swift:"",inv:"Te-05.26",desc:"PMT TEACHER PAYROLL - 05.26",invDate:"5-Jun-2026",dueDate:"30-May-26",amount:1344.0,paid:1344.0,pending:0.0,statusPmt:"Paid",pmtDate:"5-Jun-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"TEACHER PAYROLL - 05.26",monthDebt:"May"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"EE-06.26",desc:"PMT SALARY FOR EMPLOYEE-06.26",invDate:"-",dueDate:"30-Jun-26",amount:25876.2,paid:25876.2,pending:0.0,statusPmt:"Paid",pmtDate:"30-Jun-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"EMPLOYEE SALARY-06.26",monthDebt:"Jun"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"—",desc:"PMT SALARY FOR EMPLOYEE-07.26",invDate:"",dueDate:"31-Jul-26",amount:49480.0,paid:0.0,pending:49480.0,statusPmt:"Pending",pmtDate:"—",status:"Due soon",overDue:"10",priority:"🟠 Planned",note:"EMPLOYEE SALARY-07.26 and bank charge $300",monthDebt:"Jul"}
+  {supplier:"Wykeham Corporate Services Limited",bank:"OCBC",bankAcc:"503472177301",swift:"0",inv:"WCS2020029",desc:"BVI-PMT ANNUAL ADMINISTRATION CHARGE AND PROVISON OF REGISTERED OFFICE AND REGISTERED AGENT (1800$) \nPMT REIMBURSEMENT OF ANNUAL GOVERNMENT LICENSE FEE (340$)",invDate:"00-Jan-00",dueDate:"14-Sep-20",amount:2140.0,paid:2140.0,pending:0.0,statusPmt:"Paid",pmtDate:"Sep-2020",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Sep"},
+  {supplier:"Acclime Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"659015824",swift:"0",inv:"20211678",desc:"BVI-PMT for Provision for Nominee Director, CorporateSecretary and registered office address for a period of 1 September to 31st December 2021 - [1,637.10 SGD and 10 SGD bank charge] \n- INV: # 20211678\n/ (Payment on behalf of One On One Ventures Ltd via e-wallet Transferwise)",invDate:"00-Jan-00",dueDate:"27-Aug-21",amount:1218.22,paid:1218.22,pending:0.0,statusPmt:"Paid",pmtDate:"Aug-2021",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Aug"},
+  {supplier:"S E O Rank Marketing Services Inc.",bank:"Banco De Oro (BDO) in P. Corpuz BF Homes, Paranaque Branch",bankAcc:"0-1173-8000-505",swift:"0",inv:"00031968",desc:"BVI-PMT for SEO services from Sep 26, 2022 to Oct 26, 2022/ INV: 00031968",invDate:"00-Jan-00",dueDate:"29-Sep-22",amount:2500.0,paid:2500.0,pending:0.0,statusPmt:"Paid",pmtDate:"Sep-2022",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Sep"},
+  {supplier:"S E O Rank Marketing Services Inc.",bank:"Banco De Oro (BDO) in P. Corpuz BF Homes, Paranaque Branch",bankAcc:"0-1173-8000-505",swift:"0",inv:"00032016",desc:"BVI-PMT for SEO services from OCT 26, 2022 to Nov 26, 2022/ INV: 00032016",invDate:"00-Jan-00",dueDate:"28-Nov-22",amount:2500.0,paid:2500.0,pending:0.0,statusPmt:"Paid",pmtDate:"Nov-2022",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Nov"},
+  {supplier:"Teranga Digital Marketing Ltd",bank:"WISE PAYMENTS LIMITED\n (TRWIGB2LXXX)",bankAcc:"85078265",swift:"0",inv:"00032016",desc:"BVI-TT DICH VU SEO (TOI UU HOA CONG CU TIM KIEM) - LAN 1/\nPMT 1st FOR SEARCH ENGINE OPTIMIZATION SERVICE - GBP 2,980.48\n(INV: 00032016 - GBP 2,998.5)",invDate:"00-Jan-00",dueDate:"14-Nov-23",amount:3711.44,paid:3711.44,pending:0.0,statusPmt:"Paid",pmtDate:"Nov-2023",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Nov"},
+  {supplier:"Arc Warden Limited",bank:"DBS BANK (HONGKONG) LIMITED",bankAcc:"799 881 1985",swift:"0",inv:"2024-0903",desc:"BVI-TT PHI BAO CAO TAI CHINH NAM 2023 /PMT EVL_ANNUAL FINANCIAL RETURN 2023 (DEADLINE: 30-SEP-24) (INV: 2024-0903)",invDate:"00-Jan-00",dueDate:"2-Oct-24",amount:500.0,paid:500.0,pending:0.0,statusPmt:"Paid",pmtDate:"Oct-2024",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Oct"},
+  {supplier:"Arc Warden Limited",bank:"Standard Chartered Bank (Hong Kong) Limited",bankAcc:"47411853926",swift:"0",inv:"054 2025",desc:"BVI-TT PHI DỊCH VU VA BAO CAO THUONG NIEN/\nPMT YEARLY SERVICES AND REPORTS (Inv:054 2025)\n- BVI Government Annual Licence Fee (01/12/25-30/11/26): 550 $\n- Economic Substance Filing Fee(30/06/24-29/06/25): 550 $\n- Annual Return Filing Fee (01/01/24-31/12/24): 500 $\n- Register of Members / Register of Beneficial Owners Filing Fee: 500 $\n- Provision of Registered Office and Registered Agent Services: 1.200 $",invDate:"00-Jan-00",dueDate:"31-Oct-25",amount:3250.0,paid:3250.0,pending:0.0,statusPmt:"Paid",pmtDate:"Oct-2025",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Oct"},
+  {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202603-1652a",desc:"BVI-TT PHAN MEM QUAN LY NHAN SU THANG 03 (TT CHO OOV)/\nPMT THE EMPLOYEE MANAGEMENT SYSTEM FOR MAR (ON BEHALF OOV)",invDate:"10-Mar-2026",dueDate:"17-Mar-26",amount:102.56,paid:102.56,pending:0.0,statusPmt:"Paid",pmtDate:"Mar-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Mar"},
+  {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202603-1653b",desc:"BVI-TT PHAN MEM QUAN LY NHAN SU-04.26 (TT CHO OOV)/\nPMT EMPLOYEE MANAGEMENT SYSTEM FOR APR (ON BEHALF OOV)",invDate:"19-Apr-2026",dueDate:"4-May-26",amount:198.38,paid:198.38,pending:0.0,statusPmt:"Paid",pmtDate:"May-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"May"},
+  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"-",desc:"PMT SALARY FOR EMPLOYEE-06.26",invDate:"-",dueDate:"30-Jun-26",amount:29226.7,paid:0.0,pending:29226.7,statusPmt:"Pending",pmtDate:"—",status:"Due soon",overDue:"-",priority:"🟠 Planned",note:"",monthDebt:"Jun"},
 ];
 // ===== LOAD DATA FROM GOOGLE SHEETS =====
 function loadData(){
   var btn=document.getElementById('refreshBtn');
   if(btn){btn.textContent='⏳ Loading...';btn.disabled=true;}
   var ts=new Date().getTime();
-  var urls=[
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVhlA6tiBSpwtiH1deAAEXO0L7akNl0D0RLubtKKGNt-q7MUtga6ODvt-rkuzQpugqm0Is9MJoWNSG/pub?gid=807268203&single=true&output=csv&t='+ts,
-    'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/pub?gid='+GID+'&single=true&output=csv&t='+ts,
-    'https://api.allorigins.win/raw?url='+encodeURIComponent('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts),
-    'https://corsproxy.io/?'+encodeURIComponent('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts)
-  ];
-  function fetchWithTimeout(url,ms){
-    return new Promise(function(resolve,reject){
-      var tid=setTimeout(function(){reject(new Error('timeout'));},ms);
-      fetch(url).then(function(r){clearTimeout(tid);resolve(r);}).catch(function(e){clearTimeout(tid);reject(e);});
-    });
-  }
-  function tryUrl(idx){
-    if(idx>=urls.length){useFallback('All URLs failed');return;}
-    fetchWithTimeout(urls[idx],8000)
-      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
-      .then(function(text){if(text.length<100)throw new Error('Empty');onSuccess(parseSheetData(text));})
-      .catch(function(){tryUrl(idx+1);});
-  }
+  var exportUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts;
+  var directUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+GID+'&t='+ts;
+  var proxyUrl='https://corsproxy.io/?'+encodeURIComponent(exportUrl);
   function onSuccess(data){
     allData=data;
     var now=new Date();
@@ -567,12 +545,25 @@ function loadData(){
   function useFallback(reason){
     console.warn('Using static data:',reason);
     allData=STATIC_DATA;
-    var ls=document.getElementById('lastSync');if(ls)ls.textContent='Static · Jul-2026';
-    var lb=document.getElementById('liveSyncBadge');if(lb)lb.textContent='Static · Jul-2026';
+    var ls=document.getElementById('lastSync');if(ls)ls.textContent='Static · Jun-2026';
+    var lb=document.getElementById('liveSyncBadge');if(lb)lb.textContent='Static · Jun-2026';
     if(btn){btn.textContent='↺ Refresh data';btn.disabled=false;}
     renderCurrentPage();
   }
-  tryUrl(0);
+  fetch(exportUrl,{mode:'cors'})
+    .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
+    .then(function(text){onSuccess(parseSheetData(text));})
+    .catch(function(){
+      fetch(directUrl,{mode:'cors'})
+        .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
+        .then(function(text){onSuccess(parseSheetData(text));})
+        .catch(function(){
+          fetch(proxyUrl)
+            .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
+            .then(function(text){onSuccess(parseSheetData(text));})
+            .catch(function(err){useFallback(err.message);});
+        });
+    });
 }
 
 function parseSheetData(csvText){
