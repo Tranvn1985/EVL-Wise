@@ -511,15 +511,17 @@ var STATIC_DATA = [
   {supplier:"Arc Warden Limited",bank:"Standard Chartered Bank (Hong Kong) Limited",bankAcc:"47411853926",swift:"0",inv:"054 2025",desc:"BVI-TT PHI DỊCH VU VA BAO CAO THUONG NIEN/\nPMT YEARLY SERVICES AND REPORTS (Inv:054 2025)\n- BVI Government Annual Licence Fee (01/12/25-30/11/26): 550 $\n- Economic Substance Filing Fee(30/06/24-29/06/25): 550 $\n- Annual Return Filing Fee (01/01/24-31/12/24): 500 $\n- Register of Members / Register of Beneficial Owners Filing Fee: 500 $\n- Provision of Registered Office and Registered Agent Services: 1.200 $",invDate:"00-Jan-00",dueDate:"31-Oct-25",amount:3250.0,paid:3250.0,pending:0.0,statusPmt:"Paid",pmtDate:"Oct-2025",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Oct"},
   {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202603-1652a",desc:"BVI-TT PHAN MEM QUAN LY NHAN SU THANG 03 (TT CHO OOV)/\nPMT THE EMPLOYEE MANAGEMENT SYSTEM FOR MAR (ON BEHALF OOV)",invDate:"10-Mar-2026",dueDate:"17-Mar-26",amount:102.56,paid:102.56,pending:0.0,statusPmt:"Paid",pmtDate:"Mar-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Mar"},
   {supplier:"People Intelligence Singapore Pte Ltd",bank:"DBS Bank Ltd",bankAcc:"8853798181",swift:"0",inv:"202603-1653b",desc:"BVI-TT PHAN MEM QUAN LY NHAN SU-04.26 (TT CHO OOV)/\nPMT EMPLOYEE MANAGEMENT SYSTEM FOR APR (ON BEHALF OOV)",invDate:"19-Apr-2026",dueDate:"4-May-26",amount:198.38,paid:198.38,pending:0.0,statusPmt:"Paid",pmtDate:"May-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"May"},
-  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"-",desc:"PMT SALARY FOR EMPLOYEE-06.26",invDate:"-",dueDate:"30-Jun-26",amount:29226.7,paid:0.0,pending:29226.7,statusPmt:"Pending",pmtDate:"—",status:"Due soon",overDue:"-",priority:"🟠 Planned",note:"",monthDebt:"Jun"},
+  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"-",desc:"PMT SALARY FOR EMPLOYEE-06.26",invDate:"-",dueDate:"30-Jun-26",amount:29226.7,paid:29226.7,pending:0.0,statusPmt:"Paid",pmtDate:"Jun-2026",status:"Paid",overDue:"-",priority:"✅ Done",note:"",monthDebt:"Jun"},
+  {supplier:"EMPLOYEE",bank:"",bankAcc:"",swift:"",inv:"-",desc:"EMPLOYEE SALARY-07.26 and bank charge $300",invDate:"-",dueDate:"31-Jul-26",amount:49480.0,paid:0.0,pending:49480.0,statusPmt:"Pending",pmtDate:"—",status:"Pending",overDue:"-",priority:"🟢 Consider",note:"EMPLOYEE SALARY-07.26 and bank charge $300",monthDebt:"Jul"},
 ];
 // ===== LOAD DATA FROM GOOGLE SHEETS =====
 function loadData(){
   var btn=document.getElementById('refreshBtn');
   if(btn){btn.textContent='⏳ Loading...';btn.disabled=true;}
   var ts=new Date().getTime();
-  var pubUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQVhlA6tiBSpwtiH1deAAEXO0L7akNl0D0RLubtKKGNt-q7MUtga6ODvt-rkuzQpugqm0Is9MJoWNSG/pub?gid=807268203&single=true&output=csv&t='+ts;
+  var pubUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQVhlA6tiBSpwtiH1deAAEXO0L7akNl0D0RLubtKKGNt-q7MUtga6ODvt-rkuzQpugqm0Is9MJoWNSG/pub?gid=807268203&single=true&output=csv&cachebust='+ts;
   var exportUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts;
+  var gvizUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+GID+'&t='+ts;
   var proxyUrl='https://corsproxy.io/?'+encodeURIComponent(exportUrl);
   function onSuccess(data){
     allData=data;
@@ -546,10 +548,15 @@ function loadData(){
         .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
         .then(function(text){onSuccess(parseSheetData(text));})
         .catch(function(){
+      fetch(exportUrl,{mode:'cors'})
+        .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
+        .then(function(text){onSuccess(parseSheetData(text));})
+        .catch(function(){
           fetch(proxyUrl)
             .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
             .then(function(text){onSuccess(parseSheetData(text));})
             .catch(function(err){useFallback(err.message);});
+        });
         });
     });
 }
