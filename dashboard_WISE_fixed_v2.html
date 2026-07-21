@@ -518,8 +518,8 @@ function loadData(){
   var btn=document.getElementById('refreshBtn');
   if(btn){btn.textContent='⏳ Loading...';btn.disabled=true;}
   var ts=new Date().getTime();
+  var pubUrl='https://docs.google.com/spreadsheets/d/1Kr9YgkSBPgU3BfZQLxRA_9WFs0wARsktQVdLhlZpUc0/pub?gid=807268203&single=true&output=csv&t='+ts;
   var exportUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GID+'&t='+ts;
-  var gvizUrl='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+GID+'&t='+ts;
   var proxyUrl='https://corsproxy.io/?'+encodeURIComponent(exportUrl);
   function onSuccess(data){
     allData=data;
@@ -538,7 +538,7 @@ function loadData(){
     if(btn){btn.textContent='↺ Refresh data';btn.disabled=false;}
     renderCurrentPage();
   }
-  fetch(exportUrl,{mode:'cors'})
+  fetch(pubUrl)
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.text();})
     .then(function(text){onSuccess(parseSheetData(text));})
     .catch(function(){
