@@ -259,6 +259,16 @@ tbody td.center{text-align:center}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:#c5ccff;border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+@media print {
+  body > *:not(#page-confirmation),
+  .sidebar,.filter-bar,.nav-item,
+  #confEmpty, select, button {display:none!important}
+  #page-confirmation {display:block!important;padding:0!important}
+  #confPreview {display:block!important}
+  .table-card {box-shadow:none!important;border:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -275,6 +285,7 @@ tbody td.center{text-align:center}
     <div class="nav-item" onclick="showPage('supplier-info',this)"><span class="nav-icon">🏢</span> Supplier Info</div>
     <div class="nav-item" onclick="showPage('detail',this)"><span class="nav-icon">📋</span> Invoice List</div>
     <div class="nav-item" onclick="showPage('aging',this)"><span class="nav-icon">⏱️</span> Aging</div>
+    <div class="nav-item" onclick="showPage('confirmation',this)"><span class="nav-icon">📄</span> Confirmation</div>
   </nav>
   <div class="sidebar-footer"><span class="update-dot"></span>Last sync: <span id="lastSync">—</span></div>
 </aside>
@@ -373,21 +384,31 @@ tbody td.center{text-align:center}
     <div>
       <div class="page-eyebrow">Financial Data · 2026</div>
       <div class="page-title">Supplier Information</div>
-      <div class="page-subtitle">Bank account details by supplier</div>
+      <div class="page-subtitle">Bank account &amp; contact details</div>
     </div>
   </div>
   <div class="filter-bar">
     <span class="filter-bar-label">Supplier</span>
-    <select class="filter-select" id="supplierDropdown" onchange="filterSupplierInfo(this.value)" style="min-width:220px">
+    <select class="filter-select" id="supplierDropdown" onchange="filterSupplierInfo(this.value)" style="min-width:200px">
       <option value="">All Suppliers</option>
     </select>
-    <input class="search-input" placeholder="🔍 Search supplier..." oninput="searchSupplierInfo(this.value)" style="width:200px">
-    <button class="filter-refresh-btn" onclick="loadData()">&#8634; Refresh data</button>
+    <input class="search-input" placeholder="🔍 Search..." oninput="searchSupplierInfo(this.value)" style="width:180px">
+    <button class="filter-refresh-btn" onclick="loadData()">&#8634; Refresh</button>
   </div>
-  <div class="table-card">
+  <div class="table-card" style="overflow-x:auto">
     <div class="table-header"><span class="table-title">Supplier Bank Details</span></div>
-    <table><thead><tr><th>#</th><th>Supplier</th><th>Bank Name</th><th>Bank Account</th><th>Swift Code</th></tr></thead>
-    <tbody id="supplierInfoBody"></tbody></table>
+    <table style="min-width:700px">
+      <thead><tr>
+        <th style="width:40px">No</th>
+        <th>Pay To</th>
+        <th>Supplier Name</th>
+        <th>Beneficiary Bank</th>
+        <th>Account Number</th>
+        <th>Contact Name</th>
+        <th>Email</th>
+      </tr></thead>
+      <tbody id="supplierInfoBody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -441,9 +462,101 @@ tbody td.center{text-align:center}
   </div>
 </div>
 
+
+<!-- CONFIRMATION PAGE -->
+<div class="page" id="page-confirmation">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Financial Data · 2026</div>
+      <div class="page-title">Payment Confirmation</div>
+      <div class="page-subtitle">Select invoice No. to generate confirmation letter</div>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-bar-label">Invoice No.</span>
+    <select class="filter-select" id="confNoSelect" onchange="renderConfirmation()" style="min-width:250px">
+      <option value="">-- Select invoice --</option>
+    </select>
+    <button class="filter-refresh-btn" onclick="window.print()" style="background:#2e8a5c;color:#fff;border-color:#2e8a5c">🖨 Print / PDF</button>
+  </div>
+
+  <!-- Confirmation Letter Preview -->
+  <div id="confPreview" style="display:none">
+    <div class="table-card" id="confLetter" style="max-width:680px;margin:0 auto;padding:32px 40px;font-family:'Inter',sans-serif">
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="background:var(--accent);color:#fff;display:inline-block;padding:4px 18px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Payment Confirmation</div>
+        <div style="font-size:11px;color:var(--muted)" id="confStt"></div>
+      </div>
+
+      <!-- Details table -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px">
+        <tr>
+          <td style="padding:8px 0;color:var(--muted);width:160px;vertical-align:top">Payment Date:</td>
+          <td style="padding:8px 0;font-weight:600" id="confPayDate"></td>
+        </tr>
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:8px 0;color:var(--muted);vertical-align:top">Beneficiary Name:</td>
+          <td style="padding:8px 0;font-weight:600" id="confBenName"></td>
+        </tr>
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:8px 0;color:var(--muted);vertical-align:top">Beneficiary Bank:</td>
+          <td style="padding:8px 0" id="confBenBank"></td>
+        </tr>
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:8px 0;color:var(--muted);vertical-align:top">Account Number:</td>
+          <td style="padding:8px 0;font-family:monospace;letter-spacing:.5px" id="confAccNo"></td>
+        </tr>
+      </table>
+
+      <!-- Invoice box -->
+      <div style="border:1.5px solid var(--border);border-radius:8px;padding:16px;margin-bottom:20px;background:var(--surface2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Invoice / Bill</span>
+          <span style="font-weight:700;font-size:13px" id="confInvNo"></span>
+        </div>
+        <div style="font-size:12px;color:var(--text);line-height:1.6;border-top:1px solid var(--border);padding-top:8px" id="confDesc"></div>
+        <div style="display:flex;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px;margin-top:8px">
+          <span style="color:var(--muted);font-size:12px;margin-right:12px">Total</span>
+          <span style="font-weight:700;font-size:14px;color:var(--accent)" id="confTotal"></span>
+        </div>
+      </div>
+
+      <!-- Message -->
+      <div style="background:#f0f7f4;border-left:3px solid #2e8a5c;padding:12px 16px;border-radius:4px;font-size:12px;color:#1a5c3a;margin-bottom:20px">
+        We are pleased to inform you that we have initiated a bank transfer to your account.<br>
+        <strong>Transfer order successfully! ✅</strong>
+      </div>
+
+      <!-- Footer -->
+      <div style="border-top:1.5px solid var(--border);padding-top:16px;text-align:center;font-size:11px;color:var(--muted);line-height:1.8">
+        <div style="font-weight:700;color:var(--text);font-size:12px">ONE ON ONE VENTURE</div>
+        <div>16 Raffles Quay, #16-02, Hong Leong Building, Singapore 048581</div>
+        <div>Company no: 201832153K</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="confEmpty" style="text-align:center;padding:60px;color:var(--muted)">
+    <div style="font-size:48px;margin-bottom:12px">📋</div>
+    <div style="font-size:14px">Select an invoice number above to generate the confirmation letter</div>
+  </div>
+</div>
+
 </main>
 
 <script>
+var SUPPLIER_INFO=[
+  {no:1,payTo:"Wykeham",name:"Wykeham Corporate Services Limited",account:"503472177301",bank:"OCBC",contact:"Nguyet Le",email:"Nguyet.Le@acsvlegal.com"},
+  {no:2,payTo:"Acclime",name:"Acclime Singapore Pte Ltd",account:"659015824",bank:"DBS Bank Ltd",contact:"Sibing Tan",email:"s.tan@acclime.com"},
+  {no:3,payTo:"SEO",name:"S E O Rank Marketing Services Inc.",account:"0-1173-8000-505",bank:"Banco De Oro (BDO) - Paranaque Branch",contact:"Jellah Ricalde",email:"jellah@seo-hacker.com"},
+  {no:4,payTo:"Teranga Digital",name:"Teranga Digital Marketing Ltd",account:"85078265",bank:"WISE PAYMENTS LIMITED",contact:"",email:""},
+  {no:5,payTo:"Arc Warden (1)",name:"Arc Warden Limited",account:"799 881 1985",bank:"DBS BANK (HONGKONG) LIMITED",contact:"",email:""},
+  {no:6,payTo:"Arc Warden (2)",name:"Arc Warden Limited",account:"47411853926",bank:"Standard Chartered Bank (Hong Kong) Limited",contact:"Nguyet Le",email:"nguyetle@genialaw.com"},
+  {no:7,payTo:"Omini",name:"People Intelligence Singapore Pte Ltd",account:"8853798181",bank:"DBS Bank Ltd",contact:"",email:"invoice@omnihr.co"},
+  {no:8,payTo:"Employee",name:"EMPLOYEE",account:"-",bank:"-",contact:"",email:""}
+];
 // ===== CONFIG =====
 var SHEET_ID = '1Kr9YgkSBPgU3BfZQLxRA_9WFs0wARsktQVdLhlZpUc0';
 var GID = '807268203';
@@ -696,6 +809,7 @@ function renderCurrentPage(){
   if(currentPage==='overview') renderOverview(getFilteredOvData());
   else if(currentPage==='monthly') applyMonthlyFilter();
   else if(currentPage==='supplier-info') renderSupplierInfo();
+  else if(currentPage==='confirmation'){initConfirmation();renderConfirmation();}
   else if(currentPage==='aging') renderAging();
   else if(currentPage==='detail') applyDetailFilters();
 }
@@ -965,65 +1079,47 @@ function applyMonthlyFilter(){
 
 // ===== SUPPLIER INFO =====
 function renderSupplierInfo(){
-  var supMap={};
-  allData.forEach(function(d){
-    if(!supMap[d.supplier]) supMap[d.supplier]={bank:d.bank,bankAcc:d.bankAcc||'—',swift:d.swift||'—',total:0,paid:0,pending:0,statuses:[]};
-    supMap[d.supplier].total+=d.amount;
-    supMap[d.supplier].paid+=d.paid;
-    supMap[d.supplier].pending+=d.pending;
-    if(supMap[d.supplier].statuses.indexOf(d.status)<0) supMap[d.supplier].statuses.push(d.status);
-  });
-  var suppliers=Object.keys(supMap).sort();
-
-  // Populate dropdown
   var dd=document.getElementById('supplierDropdown');
-  var prev=dd.value;
-  dd.innerHTML='<option value="">All Suppliers</option>'+suppliers.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
-  if(prev) dd.value=prev;
-
+  var prev=dd?dd.value:'';
+  if(dd){
+    dd.innerHTML='<option value="">All Suppliers</option>'+SUPPLIER_INFO.map(function(s){
+      return '<option value="'+s.no+'">'+s.no+'. '+s.payTo+' — '+s.name+'</option>';
+    }).join('');
+    if(prev) dd.value=prev;
+  }
   function renderRows(list){
-    document.getElementById('supplierInfoBody').innerHTML=list.map(function(sup,i){
-      var s=supMap[sup];
-      var ms;
-      if(s.pending<=0){
-        ms='Paid';
-      } else {
-        var unpaidStatuses=[];
-        allData.filter(function(d){return d.supplier===sup&&d.pending>0;}).forEach(function(d){
-          if(unpaidStatuses.indexOf(d.status)<0) unpaidStatuses.push(d.status);
-        });
-        var so=['Overdue','Due Soon','Pending','Blocked'];
-        ms='Pending';
-        for(var si=0;si<so.length;si++){if(unpaidStatuses.indexOf(so[si])>=0){ms=so[si];break;}}
-      }
+    var body=document.getElementById('supplierInfoBody');if(!body)return;
+    body.innerHTML=list.map(function(s){
+      var emailCell=s.email
+        ?'<a href="mailto:'+s.email+'" style="color:var(--accent);text-decoration:none;font-size:11px">'+s.email+'</a>'
+        :'—';
       return '<tr>'+
-        '<td style="color:var(--muted);font-size:11px;text-align:right">'+(i+1)+'</td>'+
-        '<td class="tbl-supplier">'+sup+'</td>'+
-        '<td style="font-size:12px;white-space:nowrap">'+s.bank+'</td>'+
-        '<td class="tbl-bank">'+s.bankAcc+'</td>'+
-        '<td style="font-size:12px;letter-spacing:.5px;white-space:nowrap;color:var(--muted)">'+s.swift+'</td>'+
-        '</tr>';
+        '<td style="color:var(--muted);font-size:11px;text-align:center;font-weight:600">'+s.no+'</td>'+
+        '<td style="font-weight:700;font-size:12px;color:var(--accent);white-space:nowrap">'+s.payTo+'</td>'+
+        '<td class="tbl-supplier" style="font-size:12px">'+s.name+'</td>'+
+        '<td style="font-size:11px">'+s.bank+'</td>'+
+        '<td style="font-family:monospace;font-size:12px;letter-spacing:.3px;white-space:nowrap">'+s.account+'</td>'+
+        '<td style="font-size:12px;white-space:nowrap">'+s.contact+'</td>'+
+        '<td style="font-size:11px">'+emailCell+'</td>'+
+      '</tr>';
     }).join('');
   }
-
-  var selected=dd.value;
-  renderRows(selected?suppliers.filter(function(s){return s===selected;}):suppliers);
-
-  // Store renderRows for filter use
-  window._supRenderRows=renderRows;
-  window._supList=suppliers;
+  var sel=dd?dd.value:'';
+  var q=document.querySelector('#page-supplier-info .search-input');
+  var qv=q?q.value.toLowerCase():'';
+  var filtered=SUPPLIER_INFO.filter(function(s){
+    if(sel&&String(s.no)!==String(sel))return false;
+    if(qv&&(s.name+s.payTo+s.bank+s.contact+s.email).toLowerCase().indexOf(qv)<0)return false;
+    return true;
+  });
+  renderRows(filtered);
 }
 function filterSupplierInfo(val){
   if(window._supRenderRows&&window._supList){
     window._supRenderRows(val?window._supList.filter(function(s){return s===val;}):window._supList);
   }
 }
-function searchSupplierInfo(q){
-  q=q.toLowerCase();
-  document.querySelectorAll('#supplierInfoBody tr').forEach(function(row){
-    row.style.display=row.textContent.toLowerCase().indexOf(q)>=0?'':'none';
-  });
-}
+function searchSupplierInfo(q){renderSupplierInfo();}
 
 // ===== AGING =====
 var agingDonutInst=null,agingSupInst=null;
@@ -1164,6 +1260,47 @@ function applyDetailFilters(){
   renderDetailTable(data);
 }
 
+
+function initConfirmation(){
+  var sel=document.getElementById('confNoSelect');if(!sel)return;
+  // Build options from allData with No (row index)
+  var opts=allData.map(function(d,i){
+    var label=(i+1)+'. '+d.supplier+' — '+d.inv+(d.dueDate?' (Due: '+d.dueDate+')':'');
+    return '<option value="'+i+'">'+label+'</option>';
+  });
+  sel.innerHTML='<option value="">-- Select invoice --</option>'+opts.join('');
+}
+
+function renderConfirmation(){
+  var sel=document.getElementById('confNoSelect');
+  var idx=sel?parseInt(sel.value):-1;
+  var preview=document.getElementById('confPreview');
+  var empty=document.getElementById('confEmpty');
+  if(isNaN(idx)||idx<0||idx>=allData.length){
+    if(preview)preview.style.display='none';
+    if(empty)empty.style.display='block';
+    return;
+  }
+  var d=allData[idx];
+  if(!d){return;}
+
+  // Find supplier info for bank details
+  var sup=SUPPLIER_INFO.filter(function(s){return s.name===d.supplier;})[0]||{bank:d.bank,account:d.bankAcc};
+
+  // Populate fields
+  document.getElementById('confStt').textContent='STT: '+(idx+1);
+  document.getElementById('confPayDate').textContent=d.pmtDate&&d.pmtDate!=='—'?d.pmtDate:(d.dueDate||'—');
+  document.getElementById('confBenName').textContent=d.supplier;
+  document.getElementById('confBenBank').textContent=sup.bank||d.bank||'—';
+  document.getElementById('confAccNo').textContent=sup.account||d.bankAcc||'—';
+  document.getElementById('confInvNo').textContent=d.inv||'—';
+  document.getElementById('confDesc').textContent=d.desc||'—';
+  document.getElementById('confTotal').textContent='$'+d.amount.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  if(preview)preview.style.display='block';
+  if(empty)empty.style.display='none';
+}
+
 // ===== INIT =====
 // ===== MULTI-SELECT ENGINE =====
 var _S={},_O={},_C={},_W={};
@@ -1212,6 +1349,7 @@ function initDetMS(){
 }
 initDetMS();
 loadData();
+
 </script>
 </body>
 </html>
